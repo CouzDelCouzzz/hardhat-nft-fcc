@@ -30,10 +30,10 @@ module.exports = async function ({ getNamedAccount, deployments }) {
     // 2. pinata
     // 3. nft.storage
 
-    let vrfCoordinatorV2address, subscriptionId
+    let vrfCoordinatorV2address, subscriptionId, vrfCoordinatorV2Mock
 
     if (developmentChains.includes(network.name)) {
-        const vrfCoordinatorV2Mock = await ethers.getContract("VRFCoordinatorV2Mock")
+        vrfCoordinatorV2Mock = await ethers.getContract("VRFCoordinatorV2Mock")
         vrfCoordinatorV2address = vrfCoordinatorV2Mock.address
 
         const tx = await vrfCoordinatorV2Mock.createSubscription()
@@ -65,6 +65,10 @@ module.exports = async function ({ getNamedAccount, deployments }) {
         log: true,
         waitConfirmations: network.config.blockConfirmations || 1,
     })
+
+    // Need to add the contract address to the vrfCoordinator to be able to call functions from thi contract
+    await vrfCoordinatorV2Mock.addConsumer(subscriptionId, randomIpfsNft.address)
+
     log("--------------------------------------")
     if (!developmentChains.includes(network.name) && process.env.ETHERSCAN_API_KEY) {
         log("Verifying....")
